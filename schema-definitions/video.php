@@ -1,0 +1,63 @@
+<?php
+return array(
+    'name' => 'Video',
+    'description' => 'Video schema markup for video content',
+    'fields' => array(
+        array(
+            'key' => 'name',
+            'label' => 'Video Name',
+            'type' => 'text',
+            'placeholder' => 'My Amazing Video',
+            'required' => true,
+            'help' => 'The title of the video',
+        ),
+        array(
+            'key' => 'description',
+            'label' => 'Description',
+            'type' => 'textarea',
+            'placeholder' => 'Enter video description',
+            'required' => true,
+            'help' => 'A description of the video',
+        ),
+        array(
+            'key' => 'thumbnailUrl',
+            'label' => 'Thumbnail URL',
+            'type' => 'text',
+            'placeholder' => 'https://example.com/thumbnail.jpg',
+            'required' => true,
+            'help' => 'URL of the video thumbnail',
+        ),
+        array(
+            'key' => 'uploadDate',
+            'label' => 'Upload Date',
+            'type' => 'date',
+            'placeholder' => '2024-01-01',
+            'required' => true,
+            'help' => 'The date the video was uploaded in ISO 8601 format',
+        ),
+        array(
+            'key' => 'duration',
+            'label' => 'Duration',
+            'type' => 'text',
+            'placeholder' => 'PT1M30S',
+            'required' => false,
+            'help' => 'Duration in ISO 8601 format (e.g., PT1M30S for 1 minute 30 seconds)',
+        ),
+        array(
+            'key' => 'contentUrl',
+            'label' => 'Content URL',
+            'type' => 'text',
+            'placeholder' => 'https://example.com/video.mp4',
+            'required' => false,
+            'help' => 'Direct URL to the video file',
+        ),
+        array(
+            'key' => 'embedUrl',
+            'label' => 'Embed URL',
+            'type' => 'text',
+            'placeholder' => 'https://www.youtube.com/embed/VIDEO_ID',
+            'required' => false,
+            'help' => 'URL of the embeddable video player',
+        ),
+    ),
+);
