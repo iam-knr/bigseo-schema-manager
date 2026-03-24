@@ -1,0 +1,46 @@
+.bigseo-form-field {
+    margin-bottom: 20px;
+}
+
+.bigseo-form-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #34495e;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.bigseo-form-field label .required {
+    color: #e74c3c;
+    margin-left: 4px;
+}
+
+.bigseo-form-field input,
+.bigseo-form-field textarea,
+.bigseo-form-field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.bigseo-form-field input:focus,
+.bigseo-form-field textarea:focus,
+.bigseo-form-field select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+.bigseo-form-field textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.bigseo-form-field .description {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #7f8c8d;
+}
