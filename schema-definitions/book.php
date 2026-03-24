@@ -1,0 +1,63 @@
+<?php
+return array(
+    'name' => 'Book',
+    'description' => 'Book schema markup for published books',
+    'fields' => array(
+        array(
+            'key' => 'name',
+            'label' => 'Book Title',
+            'type' => 'text',
+            'placeholder' => 'The Great Gatsby',
+            'required' => true,
+            'help' => 'Title of the book',
+        ),
+        array(
+            'key' => 'author',
+            'label' => 'Author Name',
+            'type' => 'text',
+            'placeholder' => 'F. Scott Fitzgerald',
+            'required' => true,
+            'help' => 'Name of the book author',
+        ),
+        array(
+            'key' => 'isbn',
+            'label' => 'ISBN',
+            'type' => 'text',
+            'placeholder' => '978-3-16-148410-0',
+            'required' => false,
+            'help' => 'ISBN number of the book',
+        ),
+        array(
+            'key' => 'datePublished',
+            'label' => 'Publication Date',
+            'type' => 'date',
+            'placeholder' => '2024-01-01',
+            'required' => false,
+            'help' => 'The date the book was published',
+        ),
+        array(
+            'key' => 'publisher',
+            'label' => 'Publisher',
+            'type' => 'text',
+            'placeholder' => 'Penguin Books',
+            'required' => false,
+            'help' => 'Name of the publisher',
+        ),
+        array(
+            'key' => 'description',
+            'label' => 'Description',
+            'type' => 'textarea',
+            'placeholder' => 'Enter book description',
+            'required' => false,
+            'help' => 'A description of the book',
+        ),
+        array(
+            'key' => 'numberOfPages',
+            'label' => 'Number of Pages',
+            'type' => 'text',
+            'placeholder' => '200',
+            'required' => false,
+            'help' => 'Total number of pages',
+        ),
+    ),
+);
