@@ -1,0 +1,90 @@
+.bigseo-schema-form {
+  max-width: 800px;
+  margin: 20px 0;
+}
+
+.bigseo-form-field {
+  margin-bottom: 20px;
+}
+
+.bigseo-form-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.bigseo-form-field .required {
+  color: #dc3232;
+  margin-left: 4px;
+}
+
+.bigseo-form-field input,
+.bigseo-form-field textarea,
+.bigseo-form-field select {
+  width: 100%;
+  max-width: 500px;
+}
+
+.bigseo-form-field .description {
+  font-style: italic;
+  color: #666;
+  margin-top: 4px;
+}
+
+.bigseo-repeater {
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+
+.bigseo-repeater-item {
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.bigseo-group {
+  border-left: 3px solid #2271b1;
+  padding-left: 15px;
+  margin-left: 10px;
+}
+
+.bigseo-form-actions {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.bigseo-schema-preview {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.bigseo-schema-preview .preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.bigseo-schema-preview pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 15px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bigseo-loading {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
