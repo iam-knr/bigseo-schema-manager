@@ -1,0 +1,55 @@
+<?php
+return array(
+    'name' => 'Music Recording',
+    'description' => 'Music recording schema markup for songs and albums',
+    'fields' => array(
+        array(
+            'key' => 'name',
+            'label' => 'Track Name',
+            'type' => 'text',
+            'placeholder' => 'Bohemian Rhapsody',
+            'required' => true,
+            'help' => 'Name of the music recording',
+        ),
+        array(
+            'key' => 'byArtist',
+            'label' => 'Artist Name',
+            'type' => 'text',
+            'placeholder' => 'Queen',
+            'required' => true,
+            'help' => 'Name of the artist or band',
+        ),
+        array(
+            'key' => 'inAlbum',
+            'label' => 'Album Name',
+            'type' => 'text',
+            'placeholder' => 'A Night at the Opera',
+            'required' => false,
+            'help' => 'Album containing this track',
+        ),
+        array(
+            'key' => 'genre',
+            'label' => 'Genre',
+            'type' => 'text',
+            'placeholder' => 'Rock, Pop',
+            'required' => false,
+            'help' => 'Music genre(s)',
+        ),
+        array(
+            'key' => 'duration',
+            'label' => 'Duration',
+            'type' => 'text',
+            'placeholder' => 'PT5M55S',
+            'required' => false,
+            'help' => 'Duration in ISO 8601 format (e.g., PT5M55S for 5 minutes 55 seconds)',
+        ),
+        array(
+            'key' => 'datePublished',
+            'label' => 'Release Date',
+            'type' => 'date',
+            'placeholder' => '1975-10-31',
+            'required' => false,
+            'help' => 'Date the recording was released',
+        ),
+    ),
+);
