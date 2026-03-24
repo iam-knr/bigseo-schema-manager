@@ -1,0 +1,63 @@
+<?php
+return array(
+    'name' => 'Movie',
+    'description' => 'Movie schema markup for films',
+    'fields' => array(
+        array(
+            'key' => 'name',
+            'label' => 'Movie Title',
+            'type' => 'text',
+            'placeholder' => 'Inception',
+            'required' => true,
+            'help' => 'Title of the movie',
+        ),
+        array(
+            'key' => 'description',
+            'label' => 'Description',
+            'type' => 'textarea',
+            'placeholder' => 'Enter movie description',
+            'required' => false,
+            'help' => 'A description of the movie',
+        ),
+        array(
+            'key' => 'director',
+            'label' => 'Director Name',
+            'type' => 'text',
+            'placeholder' => 'Christopher Nolan',
+            'required' => false,
+            'help' => 'Name of the movie director',
+        ),
+        array(
+            'key' => 'dateCreated',
+            'label' => 'Release Date',
+            'type' => 'date',
+            'placeholder' => '2010-07-16',
+            'required' => false,
+            'help' => 'Movie release date',
+        ),
+        array(
+            'key' => 'actor',
+            'label' => 'Main Actor',
+            'type' => 'text',
+            'placeholder' => 'Leonardo DiCaprio',
+            'required' => false,
+            'help' => 'Lead actor name',
+        ),
+        array(
+            'key' => 'genre',
+            'label' => 'Genre',
+            'type' => 'text',
+            'placeholder' => 'Science Fiction, Thriller',
+            'required' => false,
+            'help' => 'Movie genre(s)',
+        ),
+        array(
+            'key' => 'duration',
+            'label' => 'Duration',
+            'type' => 'text',
+            'placeholder' => 'PT2H28M',
+            'required' => false,
+            'help' => 'Duration in ISO 8601 format (e.g., PT2H28M for 2 hours 28 minutes)',
+        ),
+    ),
+);
