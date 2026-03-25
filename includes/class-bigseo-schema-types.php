@@ -1,101 +1,82 @@
 <?php
 /**
- * Master registry of all supported Schema.org types and their field definitions.
- * Acts as the single source of truth for the entire plugin.
+ * Schema Types Class
  *
- * @package    BigSEO_Schema_Manager
- * @subpackage BigSEO_Schema_Manager/includes
- * @since      1.0.0
+ * Manages all schema types and their definitions
+ *
+ * @package BigSEO_Schema_Manager
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
 class BigSEO_Schema_Types {
 
     /**
-     * Returns the complete list of all supported schema types.
-     *
-     * @return array Associative array keyed by schema type slug.
-     * @since 1.0.0
+     * Get all available schema types
      */
-    public static function get_all_types() {
+    public function get_available_types() {
         return array(
-            // Content Types
-            'article'           => array( 'label' => 'Article',           'category' => 'Content' ),
-            'blogposting'       => array( 'label' => 'Blog Posting',      'category' => 'Content' ),
-            'newsarticle'       => array( 'label' => 'News Article',      'category' => 'Content' ),
-            'webpage'           => array( 'label' => 'Web Page',          'category' => 'Content' ),
-            
-            // Business Types
-            'localbusiness'     => array( 'label' => 'Local Business',    'category' => 'Business' ),
-            'organization'      => array( 'label' => 'Organization',      'category' => 'Business' ),
-            'restaurant'        => array( 'label' => 'Restaurant',        'category' => 'Business' ),
-            'store'             => array( 'label' => 'Store',             'category' => 'Business' ),
-            
-            // Products & Offers
-            'product'           => array( 'label' => 'Product',           'category' => 'E-commerce' ),
-            'offer'             => array( 'label' => 'Offer',             'category' => 'E-commerce' ),
-            'aggregateoffer'    => array( 'label' => 'Aggregate Offer',   'category' => 'E-commerce' ),
-            
-            // Reviews & Ratings
-            'review'            => array( 'label' => 'Review',            'category' => 'Reviews' ),
-            'aggregaterating'   => array( 'label' => 'Aggregate Rating',  'category' => 'Reviews' ),
-            
-            // Events
-            'event'             => array( 'label' => 'Event',             'category' => 'Events' ),
-            
-            // Media
-            'videoobject'       => array( 'label' => 'Video Object',      'category' => 'Media' ),
-            'imageobject'       => array( 'label' => 'Image Object',      'category' => 'Media' ),
-            'audioobject'       => array( 'label' => 'Audio Object',      'category' => 'Media' ),
-            
-            // People & Identity
-            'person'            => array( 'label' => 'Person',            'category' => 'People' ),
-            'profilepage'       => array( 'label' => 'Profile Page',      'category' => 'People' ),
-            
-            // Knowledge
-            'faqpage'           => array( 'label' => 'FAQ Page',          'category' => 'Knowledge' ),
-            'howto'             => array( 'label' => 'How-To',            'category' => 'Knowledge' ),
-            'course'            => array( 'label' => 'Course',            'category' => 'Knowledge' ),
-            'recipe'            => array( 'label' => 'Recipe',            'category' => 'Knowledge' ),
-            
-            // Technical
-            'breadcrumblist'    => array( 'label' => 'Breadcrumb List',   'category' => 'Technical' ),
-            'website'           => array( 'label' => 'Website',           'category' => 'Technical' ),
-            
-            // Jobs
-            'jobposting'        => array( 'label' => 'Job Posting',       'category' => 'Jobs' ),
+            array('value' => 'article', 'label' => 'Article'),
+            array('value' => 'local-business', 'label' => 'Local Business'),
+            array('value' => 'product', 'label' => 'Product'),
+            array('value' => 'organization', 'label' => 'Organization'),
+            array('value' => 'person', 'label' => 'Person'),
+            array('value' => 'event', 'label' => 'Event'),
+            array('value' => 'recipe', 'label' => 'Recipe'),
+            array('value' => 'faqpage', 'label' => 'FAQ Page'),
+            array('value' => 'breadcrumb', 'label' => 'Breadcrumb'),
+            array('value' => 'course', 'label' => 'Course'),
+            array('value' => 'job-posting', 'label' => 'Job Posting'),
+            array('value' => 'movie', 'label' => 'Movie'),
+            array('value' => 'music', 'label' => 'Music Album'),
+            array('value' => 'restaurant', 'label' => 'Restaurant'),
+            array('value' => 'software', 'label' => 'Software Application'),
+            array('value' => 'video', 'label' => 'Video'),
+            array('value' => 'book', 'label' => 'Book')
         );
     }
 
     /**
-     * Returns the field definition array for a specific schema type.
-     *
-     * @param string $type Schema type slug (e.g., 'article', 'localbusiness').
-     * @return array|null Field configuration array or null if type doesn't exist.
-     * @since 1.0.0
+     * Get schema field definitions for a specific type
      */
-    public static function get_fields( $type ) {
-        $file = BIGSEO_SCHEMA_PLUGIN_DIR . 'schema-definitions/' . $type . '.php';
+    public function get_schema_fields($type) {
+        $file_path = BIGSEO_PLUGIN_DIR . 'schema-definitions/' . $type . '.php';
         
-        if ( file_exists( $file ) ) {
-            return require $file;
+        if (!file_exists($file_path)) {
+            return false;
         }
+
+        $fields = include $file_path;
         
-        return null;
+        if (!is_array($fields)) {
+            return false;
+        }
+
+        return $fields;
     }
 
     /**
-     * Checks if a given schema type is supported.
-     *
-     * @param string $type Schema type slug.
-     * @return bool
-     * @since 1.0.0
+     * Check if schema type is valid
      */
-    public static function is_valid_type( $type ) {
-        $types = self::get_all_types();
-        return isset( $types[ $type ] );
+    public function is_valid_type($type) {
+        $valid_types = array_column($this->get_available_types(), 'value');
+        return in_array($type, $valid_types, true);
+    }
+
+    /**
+     * Get schema type label
+     */
+    public function get_type_label($type) {
+        $types = $this->get_available_types();
+        
+        foreach ($types as $schema_type) {
+            if ($schema_type['value'] === $type) {
+                return $schema_type['label'];
+            }
+        }
+        
+        return '';
     }
 }
