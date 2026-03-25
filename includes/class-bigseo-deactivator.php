@@ -1,28 +1,40 @@
 <?php
 /**
- * Fired during plugin deactivation.
+ * Deactivator Class
  *
- * @package    BigSEO_Schema_Manager
- * @subpackage BigSEO_Schema_Manager/includes
- * @since      1.0.0
+ * Fired during plugin deactivation
+ *
+ * @package BigSEO_Schema_Manager
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
 class BigSEO_Deactivator {
 
     /**
-     * Runs on plugin deactivation.
-     *
-     * Note: We do NOT delete post_meta or options here.
-     * Data cleanup is handled by uninstall.php only.
-     *
-     * @since 1.0.0
+     * Run on plugin deactivation
      */
     public static function deactivate() {
-        // Flush rewrite rules on deactivation.
+        // Flush rewrite rules
         flush_rewrite_rules();
+
+        // Clear transients/caches
+        self::clear_plugin_cache();
+
+        // Remove activation flag
+        delete_option('bigseo_plugin_activated');
+    }
+
+    /**
+     * Clear plugin-specific caches
+     */
+    private static function clear_plugin_cache() {
+        // Delete any transients
+        delete_transient('bigseo_schema_cache');
+        
+        // Clear WordPress object cache
+        wp_cache_flush();
     }
 }
