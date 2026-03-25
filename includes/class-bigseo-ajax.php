@@ -1,9 +1,9 @@
 <?php
 /**
  * AJAX Handler Class
- * 
- * Handles all AJAX requests for the plugin
- * 
+ *
+ * Handles all AJAX and REST API requests for the plugin
+ *
  * @package BigSEO_Schema_Manager
  */
 
@@ -12,115 +12,158 @@ if (!defined('ABSPATH')) {
 }
 
 class BigSEO_Ajax {
-    
+
     private $generator;
-    
+    private $schema_types;
+    private $sanitizer;
+
     public function __construct() {
         $this->generator = new BigSEO_Generator();
-        $this->init_hooks();
+        $this->schema_types = new BigSEO_Schema_Types();
+        $this->sanitizer = new BigSEO_Sanitizer();
     }
-    
-    /**
-     * Initialize AJAX hooks
-     */
-    private function init_hooks() {
-        add_action('wp_ajax_generate_schema', [$this, 'handle_generate_schema']);
-        add_action('wp_ajax_get_schema_definition', [$this, 'handle_get_definition']);
-        add_action('wp_ajax_save_schema', [$this, 'handle_save_schema']);
-        add_action('wp_ajax_delete_schema', [$this, 'handle_delete_schema']);
+
+    public function init_hooks() {
+        add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
-    
+
     /**
-     * Handle schema generation request
+     * Register REST API routes
      */
-    public function handle_generate_schema() {
-        check_ajax_referer('bigseo_schema_nonce', 'nonce');
-        
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error(['message' => 'Unauthorized']);
-        }
-        
-        $schema_type = sanitize_text_field($_POST['schema_type'] ?? '');
-        $form_data = json_decode(stripslashes($_POST['form_data'] ?? '{}'), true);
-        
-        if (empty($schema_type)) {
-            wp_send_json_error(['message' => 'Schema type is required']);
-        }
-        
-        $schema = $this->generator->generate($schema_type, $form_data);
-        
-        if (is_wp_error($schema)) {
-            wp_send_json_error(['message' => $schema->get_error_message()]);
-        }
-        
-        wp_send_json_success(['schema' => $schema]);
+    public function register_rest_routes() {
+        // Get schema types
+        register_rest_route('bigseo/v1', '/schema-types', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'handle_get_schema_types'),
+            'permission_callback' => array($this, 'check_permissions')
+        ));
+
+        // Get schema definition
+        register_rest_route('bigseo/v1', '/schema-definitions/(?P<type>[a-zA-Z0-9-]+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'handle_get_definition'),
+            'permission_callback' => array($this, 'check_permissions'),
+            'args' => array(
+                'type' => array(
+                    'required' => true,
+                    'validate_callback' => function($param) {
+                        return is_string($param);
+                    }
+                )
+            )
+        ));
+
+        // Save schema data
+        register_rest_route('bigseo/v1', '/save-schema', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'handle_save_schema'),
+            'permission_callback' => array($this, 'check_edit_permissions'),
+            'args' => array(
+                'post_id' => array(
+                    'required' => true,
+                    'validate_callback' => function($param) {
+                        return is_numeric($param);
+                    }
+                ),
+                'schema_type' => array(
+                    'required' => true,
+                    'validate_callback' => function($param) {
+                        return is_string($param);
+                    }
+                ),
+                'schema_data' => array(
+                    'required' => true,
+                    'validate_callback' => function($param) {
+                        return is_array($param);
+                    }
+                )
+            )
+        ));
+
+        // Generate schema preview
+        register_rest_route('bigseo/v1', '/generate-schema', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'handle_generate_schema'),
+            'permission_callback' => array($this, 'check_permissions'),
+            'args' => array(
+                'schema_type' => array(
+                    'required' => true
+                ),
+                'schema_data' => array(
+                    'required' => true
+                )
+            )
+        ));
+
+        // Delete schema
+        register_rest_route('bigseo/v1', '/delete-schema/(?P<post_id>\\d+)', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'handle_delete_schema'),
+            'permission_callback' => array($this, 'check_edit_permissions'),
+            'args' => array(
+                'post_id' => array(
+                    'required' => true,
+                    'validate_callback' => function($param) {
+                        return is_numeric($param);
+                    }
+                )
+            )
+        ));
     }
-    
-    /**
-     * Get schema definition
-     */
-    public function handle_get_definition() {
-        check_ajax_referer('bigseo_schema_nonce', 'nonce');
-        
-        $schema_type = sanitize_text_field($_POST['schema_type'] ?? '');
-        
-        if (empty($schema_type)) {
-            wp_send_json_error(['message' => 'Schema type is required']);
-        }
-        
-        $file_path = BIGSEO_PLUGIN_DIR . 'schema-definitions/' . sanitize_file_name($schema_type) . '.php';
-        
-        if (!file_exists($file_path)) {
-            wp_send_json_error(['message' => 'Schema definition not found']);
-        }
-        
-        $definition = include $file_path;
-        wp_send_json_success(['definition' => $definition]);
+
+    public function check_permissions() {
+        return current_user_can('edit_posts');
     }
-    
-    /**
-     * Save schema to post meta
-     */
-    public function handle_save_schema() {
-        check_ajax_referer('bigseo_schema_nonce', 'nonce');
-        
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error(['message' => 'Unauthorized']);
+
+    public function check_edit_permissions($request) {
+        $post_id = $request->get_param('post_id');
+        if ($post_id) {
+            return current_user_can('edit_post', $post_id);
         }
-        
-        $post_id = intval($_POST['post_id'] ?? 0);
-        $schema_type = sanitize_text_field($_POST['schema_type'] ?? '');
-        $schema_data = json_decode(stripslashes($_POST['schema_data'] ?? '{}'), true);
-        
-        if (empty($post_id) || empty($schema_type)) {
-            wp_send_json_error(['message' => 'Invalid request']);
-        }
-        
-        update_post_meta($post_id, '_bigseo_schema_type', $schema_type);
-        update_post_meta($post_id, '_bigseo_schema_data', $schema_data);
-        
-        wp_send_json_success(['message' => 'Schema saved successfully']);
+        return current_user_can('edit_posts');
     }
-    
-    /**
-     * Delete schema from post
-     */
-    public function handle_delete_schema() {
-        check_ajax_referer('bigseo_schema_nonce', 'nonce');
-        
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error(['message' => 'Unauthorized']);
+
+    public function handle_get_schema_types($request) {
+        $types = $this->schema_types->get_available_types();
+        return new WP_REST_Response(array('success' => true, 'data' => $types), 200);
+    }
+
+    public function handle_get_definition($request) {
+        $type = $request->get_param('type');
+        $definition = $this->schema_types->get_schema_fields($type);
+        if (!$definition) {
+            return new WP_REST_Response(array('success' => false, 'message' => 'Schema type not found'), 404);
         }
-        
-        $post_id = intval($_POST['post_id'] ?? 0);
-        
-        if (empty($post_id)) {
-            wp_send_json_error(['message' => 'Post ID is required']);
+        return new WP_REST_Response(array('success' => true, 'data' => $definition), 200);
+    }
+
+    public function handle_save_schema($request) {
+        $post_id = $request->get_param('post_id');
+        $schema_type = $request->get_param('schema_type');
+        $schema_data = $request->get_param('schema_data');
+        $sanitized_data = $this->sanitizer->sanitize_schema_data($schema_data, $schema_type);
+        update_post_meta($post_id, '_bigseo_schema_type', sanitize_text_field($schema_type));
+        update_post_meta($post_id, '_bigseo_schema_data', wp_json_encode($sanitized_data));
+        update_post_meta($post_id, '_bigseo_enable_schema', '1');
+        return new WP_REST_Response(array('success' => true, 'message' => 'Schema saved successfully', 'data' => array('post_id' => $post_id, 'schema_type' => $schema_type)), 200);
+    }
+
+    public function handle_generate_schema($request) {
+        $schema_type = $request->get_param('schema_type');
+        $schema_data = $request->get_param('schema_data');
+        $sanitized_data = $this->sanitizer->sanitize_schema_data($schema_data, $schema_type);
+        $json_ld = $this->generator->generate($schema_type, $sanitized_data);
+        if (!$json_ld) {
+            return new WP_REST_Response(array('success' => false, 'message' => 'Failed to generate schema'), 400);
         }
-        
+        return new WP_REST_Response(array('success' => true, 'data' => array('json_ld' => $json_ld, 'formatted' => json_encode(json_decode($json_ld), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))), 200);
+    }
+
+    public function handle_delete_schema($request) {
+        $post_id = $request->get_param('post_id');
         delete_post_meta($post_id, '_bigseo_schema_type');
         delete_post_meta($post_id, '_bigseo_schema_data');
-        
-        wp_send_json_success(['message' => 'Schema deleted successfully']);
+        delete_post_meta($post_id, '_bigseo_enable_schema');
+        return new WP_REST_Response(array('success' => true, 'message' => 'Schema deleted successfully'), 200);
     }
 }
