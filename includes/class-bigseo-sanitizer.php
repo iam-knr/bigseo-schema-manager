@@ -1,61 +1,35 @@
 <?php
 /**
- * Sanitizes and validates all incoming schema data before saving.
+ * Sanitizer Class
  *
- * @package    BigSEO_Schema_Manager
- * @subpackage BigSEO_Schema_Manager/includes
- * @since      1.0.0
+ * Sanitizes and validates all schema input data
+ *
+ * @package BigSEO_Schema_Manager
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
 class BigSEO_Sanitizer {
 
     /**
-     * Sanitizes schema data array recursively.
-     *
-     * @param array $data Raw schema data from POST/AJAX.
-     * @return array Sanitized schema data.
-     * @since 1.0.0
+     * Sanitize schema data array
      */
-    public static function sanitize_schema_data( $data ) {
-        if ( ! is_array( $data ) ) {
+    public function sanitize_schema_data($data, $schema_type) {
+        if (!is_array($data)) {
             return array();
         }
 
         $sanitized = array();
 
-        foreach ( $data as $key => $value ) {
-            // Sanitize the key.
-            $clean_key = sanitize_key( $key );
-
-            // Recursively sanitize nested arrays.
-            if ( is_array( $value ) ) {
-                $sanitized[ $clean_key ] = self::sanitize_schema_data( $value );
-            }
-            // URLs.
-            elseif ( filter_var( $value, FILTER_VALIDATE_URL ) ) {
-                $sanitized[ $clean_key ] = esc_url_raw( $value );
-            }
-            // Emails.
-            elseif ( is_email( $value ) ) {
-                $sanitized[ $clean_key ] = sanitize_email( $value );
-            }
-            // Numbers (integers and floats).
-            elseif ( is_numeric( $value ) ) {
-                $sanitized[ $clean_key ] = ( strpos( $value, '.' ) !== false )
-                    ? floatval( $value )
-                    : intval( $value );
-            }
-            // Booleans.
-            elseif ( is_bool( $value ) || in_array( $value, array( 'true', 'false' ), true ) ) {
-                $sanitized[ $clean_key ] = filter_var( $value, FILTER_VALIDATE_BOOLEAN );
-            }
-            // Everything else: text.
-            else {
-                $sanitized[ $clean_key ] = sanitize_text_field( $value );
+        foreach ($data as $key => $value) {
+            $sanitized_key = sanitize_key($key);
+            
+            if (is_array($value)) {
+                $sanitized[$sanitized_key] = $this->sanitize_schema_data($value, $schema_type);
+            } else {
+                $sanitized[$sanitized_key] = $this->sanitize_field($value, $key);
             }
         }
 
@@ -63,41 +37,94 @@ class BigSEO_Sanitizer {
     }
 
     /**
-     * Validates required fields for a given schema type.
-     *
-     * @param string $type   Schema type slug.
-     * @param array  $data   Schema data to validate.
-     * @return array|WP_Error Validated data or WP_Error on failure.
-     * @since 1.0.0
+     * Sanitize individual field based on its type
      */
-    public static function validate_required_fields( $type, $data ) {
-        $fields = BigSEO_Schema_Types::get_fields( $type );
-
-        if ( ! $fields ) {
-            return new WP_Error( 'invalid_type', 'Schema type not supported.' );
+    private function sanitize_field($value, $field_key) {
+        // URL fields
+        if (strpos($field_key, 'url') !== false || strpos($field_key, 'URL') !== false || $field_key === 'image' || $field_key === 'logo') {
+            return esc_url_raw($value);
         }
 
-        $missing = array();
+        // Email fields
+        if (strpos($field_key, 'email') !== false) {
+            return sanitize_email($value);
+        }
 
-        foreach ( $fields as $field ) {
-            if ( ! empty( $field['required'] ) ) {
-                $key = $field['key'];
-                if ( empty( $data[ $key ] ) ) {
-                    $missing[] = $field['label'];
-                }
+        // Numeric fields
+        if (in_array($field_key, array('price', 'ratingValue', 'bestRating', 'worstRating', 'ratingCount', 'reviewCount'))) {
+            return floatval($value);
+        }
+
+        // Date fields
+        if (strpos($field_key, 'date') !== false || strpos($field_key, 'Date') !== false) {
+            return sanitize_text_field($value);
+        }
+
+        // Text fields (default)
+        return sanitize_text_field($value);
+    }
+
+    /**
+     * Validate URL
+     */
+    public function validate_url($url) {
+        return filter_var($url, FILTER_VALIDATE_URL) !== false;
+    }
+
+    /**
+     * Validate email
+     */
+    public function validate_email($email) {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    /**
+     * Validate date format
+     */
+    public function validate_date($date) {
+        $d = \DateTime::createFromFormat('Y-m-d', $date);
+        return $d && $d->format('Y-m-d') === $date;
+    }
+
+    /**
+     * Validate datetime format
+     */
+    public function validate_datetime($datetime) {
+        $formats = array(
+            'Y-m-d\\TH:i:s',
+            'Y-m-d\\TH:i:sP',
+            'Y-m-d H:i:s',
+            'c'
+        );
+
+        foreach ($formats as $format) {
+            $d = \DateTime::createFromFormat($format, $datetime);
+            if ($d) {
+                return true;
             }
         }
 
-        if ( ! empty( $missing ) ) {
-            return new WP_Error(
-                'missing_fields',
-                sprintf(
-                    'Required fields missing: %s',
-                    implode( ', ', $missing )
-                )
-            );
-        }
+        return false;
+    }
 
-        return $data;
+    /**
+     * Sanitize text field
+     */
+    public function sanitize_text($text) {
+        return sanitize_text_field($text);
+    }
+
+    /**
+     * Sanitize textarea field
+     */
+    public function sanitize_textarea($text) {
+        return sanitize_textarea_field($text);
+    }
+
+    /**
+     * Sanitize HTML content (for description fields)
+     */
+    public function sanitize_html($html) {
+        return wp_kses_post($html);
     }
 }
