@@ -1,38 +1,63 @@
 <?php
 /**
- * Fired during plugin activation.
+ * Activator Class
  *
- * @package    BigSEO_Schema_Manager
- * @subpackage BigSEO_Schema_Manager/includes
- * @since      1.0.0
+ * Fired during plugin activation
+ *
+ * @package BigSEO_Schema_Manager
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
 class BigSEO_Activator {
 
     /**
-     * Runs on plugin activation.
-     *
-     * Creates the necessary database options and sets the plugin version.
-     *
-     * @since 1.0.0
+     * Run on plugin activation
      */
     public static function activate() {
-
-        // Store the plugin version for future upgrade checks.
-        if ( ! get_option( 'bigseo_schema_version' ) ) {
-            add_option( 'bigseo_schema_version', BIGSEO_SCHEMA_VERSION );
+        // Check WordPress version
+        if (version_compare(get_bloginfo('version'), '5.0', '<')) {
+            wp_die('BigSEO Schema Manager requires WordPress 5.0 or higher.');
         }
 
-        // Initialise global schema settings if not already present.
-        if ( ! get_option( 'bigseo_schema_global' ) ) {
-            add_option( 'bigseo_schema_global', array() );
+        // Check PHP version
+        if (version_compare(PHP_VERSION, '7.4', '<')) {
+            wp_die('BigSEO Schema Manager requires PHP 7.4 or higher.');
         }
 
-        // Flush rewrite rules so our REST routes are live immediately.
+        // Set default options
+        self::set_default_options();
+
+        // Flush rewrite rules
         flush_rewrite_rules();
+
+        // Set activation flag
+        update_option('bigseo_plugin_activated', true);
+        update_option('bigseo_plugin_version', '1.0.0');
+    }
+
+    /**
+     * Set default plugin options
+     */
+    private static function set_default_options() {
+        // Default organization schema
+        if (!get_option('bigseo_default_organization')) {
+            update_option('bigseo_default_organization', json_encode(array(
+                'name' => get_bloginfo('name'),
+                'url' => home_url('/'),
+                'logo' => ''
+            )));
+        }
+
+        // Default settings
+        if (!get_option('bigseo_enable_breadcrumbs')) {
+            update_option('bigseo_enable_breadcrumbs', false);
+        }
+
+        if (!get_option('bigseo_default_logo')) {
+            update_option('bigseo_default_logo', '');
+        }
     }
 }
